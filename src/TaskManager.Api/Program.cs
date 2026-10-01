@@ -38,6 +38,7 @@ builder.Services.AddSwaggerGen(options =>
     options.NonNullableReferenceTypesAsRequired();
 });
 
+builder.Services.AddHealthChecks();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
@@ -56,5 +57,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
+app.MapHealthChecks("/health");
 app.Run();
