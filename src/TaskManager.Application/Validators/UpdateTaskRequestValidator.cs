@@ -9,6 +9,8 @@ public sealed class UpdateTaskRequestValidator : AbstractValidator<UpdateTaskReq
     {
         RuleFor(x => x.Title).ValidTitle();
         RuleFor(x => x.Description).ValidDescription();
-        RuleFor(x => x.Status).IsInEnum().WithMessage("Status inválido.");
+        RuleFor(x => x.Status)
+        .NotNull().WithMessage("O status é obrigatório.")
+        .IsInEnum().WithMessage("Status inválido.");
     }
 }

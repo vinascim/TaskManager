@@ -1,6 +1,62 @@
-@TaskManager.Api_HostAddress = http://localhost:5101
+@baseUrl = http://localhost:5101
+@taskId = 00000000-0000-0000-0000-000000000000
 
-GET {{TaskManager.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Criar tarefa completa
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
 
-###
+{
+  "title": "Implementar tela de login",
+  "description": "Criar formulário com e-mail e senha e validação dos campos",
+  "dueDate": "2026-12-31",
+  "status": "InProgress"
+}
+
+### Criar tarefa só com título (status padrão: Pending)
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Configurar pipeline de deploy"
+}
+
+### Criar tarefa inválida (400 com erros por campo)
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "",
+  "status": "Pending"
+}
+
+### Listar todas
+GET {{baseUrl}}/api/tasks
+
+### Filtrar por status
+GET {{baseUrl}}/api/tasks?status=Pending
+
+### Filtrar por intervalo de vencimento
+GET {{baseUrl}}/api/tasks?dueDateFrom=2026-01-01&dueDateTo=2026-12-31
+
+### Buscar por texto (sem diferenciar maiúsculas)
+GET {{baseUrl}}/api/tasks?search=login
+
+### Filtros combinados
+GET {{baseUrl}}/api/tasks?status=InProgress&search=login
+
+### Buscar por Id (copie um id da listagem para @taskId)
+GET {{baseUrl}}/api/tasks/{{taskId}}
+
+### Atualizar (PUT substitui todos os campos)
+PUT {{baseUrl}}/api/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "title": "Implementar tela de login",
+  "description": "Adicionar opção de lembrar usuário",
+  "dueDate": "2027-01-15",
+  "status": "Completed"
+}
+
+### Excluir
+DELETE {{baseUrl}}/api/tasks/{{taskId}}

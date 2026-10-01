@@ -66,6 +66,20 @@ public class UpdateTaskRequestValidatorTests
     }
 
     [Fact]
+    public void Validate_WithoutStatus_ShouldHaveError()
+    {
+        // Arrange
+        var request = new UpdateTaskRequest("Título", null, null, null);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Status)
+            .WithErrorMessage("O status é obrigatório.");
+    }
+
+    [Fact]
     public void Validate_WithInvalidStatus_ShouldHaveError()
     {
         // Arrange
