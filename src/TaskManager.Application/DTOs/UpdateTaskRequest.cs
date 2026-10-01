@@ -6,4 +6,4 @@ public sealed record UpdateTaskRequest(
     string Title,
     string? Description,
     DateOnly? DueDate,
-    TaskItemStatus Status);
+    TaskItemStatus? Status);

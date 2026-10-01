@@ -68,7 +68,7 @@ public sealed class TaskService : ITaskService
 
         var task = await GetExistingTaskAsync(id, cancellationToken);
 
-        task.Update(request.Title, request.Description, request.DueDate, request.Status);
+        task.Update(request.Title, request.Description, request.DueDate, request.Status!.Value);
 
         await _repository.UpdateAsync(task, cancellationToken);
 
