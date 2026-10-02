@@ -104,22 +104,27 @@ public class TaskServiceTests
     }
 
     [Fact]
-    public async Task ListAsync_WithValidFilter_ShouldReturnMappedTasks()
+    public async Task ListAsync_WithValidFilter_ShouldReturnMappedPage()
     {
         // Arrange
-        var filter = new TaskFilter(Status: TaskItemStatus.Pending);
+        var filter = new TaskFilter(Status: TaskItemStatus.Pending, Page: 2, PageSize: 2);
         var tasks = new List<TaskItem>
         {
-            TaskItem.Create("Tarefa 1", null, null, TaskItemStatus.Pending),
-            TaskItem.Create("Tarefa 2", null, null, TaskItemStatus.Pending)
+            TaskItem.Create("Tarefa 3", null, null, TaskItemStatus.Pending),
+            TaskItem.Create("Tarefa 4", null, null, TaskItemStatus.Pending)
         };
-        _repository.ListAsync(filter, Arg.Any<CancellationToken>()).Returns(tasks);
+        _repository.ListAsync(filter, Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<TaskItem>(tasks, Page: 2, PageSize: 2, TotalCount: 5));
 
         // Act
         var response = await _service.ListAsync(filter);
 
         // Assert
-        response.Should().BeEquivalentTo(tasks.Select(TaskResponse.FromEntity));
+        response.Items.Should().BeEquivalentTo(tasks.Select(TaskResponse.FromEntity));
+        response.Page.Should().Be(2);
+        response.PageSize.Should().Be(2);
+        response.TotalCount.Should().Be(5);
+        response.TotalPages.Should().Be(3);
     }
 
     [Fact]

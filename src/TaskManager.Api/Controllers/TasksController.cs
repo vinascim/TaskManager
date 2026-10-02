@@ -37,17 +37,18 @@ public sealed class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Lista as tarefas, com filtros opcionais.
+    /// Lista as tarefas de forma paginada, com filtros opcionais.
     /// </summary>
     /// <remarks>
     /// Os filtros podem ser combinados. Tarefas com vencimento aparecem primeiro, ordenadas pela data.
+    /// Por padrão retorna a página 1 com 20 itens; o tamanho máximo da página é 100.
     /// </remarks>
-    /// <response code="200">Lista de tarefas (vazia se nenhuma corresponder aos filtros).</response>
-    /// <response code="400">Filtros inválidos.</response>
+    /// <response code="200">Página de tarefas com os metadados de paginação (itens vazios se nada corresponder aos filtros).</response>
+    /// <response code="400">Filtros ou parâmetros de paginação inválidos.</response>
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<TaskResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<TaskResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<TaskResponse>>> List([FromQuery] TaskFilter filter, CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<TaskResponse>>> List([FromQuery] TaskFilter filter, CancellationToken cancellationToken)
     {
         var tasks = await _taskService.ListAsync(filter, cancellationToken);
         return Ok(tasks);
