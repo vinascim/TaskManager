@@ -98,4 +98,49 @@ public class TaskFilterValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Search);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_WithPageLessThanOne_ShouldHaveError(int page)
+    {
+        // Arrange
+        var filter = new TaskFilter(Page: page);
+
+        // Act
+        var result = _validator.TestValidate(filter);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Page);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(TaskFilter.MaxPageSize + 1)]
+    public void Validate_WithPageSizeOutOfRange_ShouldHaveError(int pageSize)
+    {
+        // Arrange
+        var filter = new TaskFilter(PageSize: pageSize);
+
+        // Act
+        var result = _validator.TestValidate(filter);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.PageSize);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(TaskFilter.MaxPageSize)]
+    public void Validate_WithPageSizeAtLimits_ShouldNotHaveErrors(int pageSize)
+    {
+        // Arrange
+        var filter = new TaskFilter(PageSize: pageSize);
+
+        // Act
+        var result = _validator.TestValidate(filter);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
 }

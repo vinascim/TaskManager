@@ -18,7 +18,7 @@ internal sealed class TaskRepository : ITaskRepository
     public async Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<TaskItem>> ListAsync(TaskFilter filter, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TaskItem>> ListAsync(TaskFilter filter, CancellationToken cancellationToken = default)
     {
         var query = _context.Tasks.AsNoTracking();
 
@@ -40,11 +40,18 @@ internal sealed class TaskRepository : ITaskRepository
                 (t.Description != null && t.Description.ToLower().Contains(search)));
         }
 
-        return await query
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(t => t.DueDate == null)
             .ThenBy(t => t.DueDate)
             .ThenBy(t => t.Title)
+            .ThenBy(t => t.Id)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<TaskItem>(items, filter.Page, filter.PageSize, totalCount);
     }
 
     public async Task AddAsync(TaskItem task, CancellationToken cancellationToken = default)

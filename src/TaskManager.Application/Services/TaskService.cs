@@ -53,13 +53,13 @@ public sealed class TaskService : ITaskService
         return TaskResponse.FromEntity(task);
     }
 
-    public async Task<IReadOnlyList<TaskResponse>> ListAsync(TaskFilter filter, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TaskResponse>> ListAsync(TaskFilter filter, CancellationToken cancellationToken = default)
     {
         await _filterValidator.ValidateAndThrowAsync(filter, cancellationToken);
 
         var tasks = await _repository.ListAsync(filter, cancellationToken);
 
-        return tasks.Select(TaskResponse.FromEntity).ToList();
+        return tasks.Map(TaskResponse.FromEntity);
     }
 
     public async Task<TaskResponse> UpdateAsync(Guid id, UpdateTaskRequest request, CancellationToken cancellationToken = default)

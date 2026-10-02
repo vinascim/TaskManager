@@ -105,12 +105,80 @@ public class ListTasksTests : ApiTestBase
         problem!.Errors.Should().ContainKey("dueDateFrom");
     }
 
-    private async Task<IReadOnlyList<TaskResponse>> ListAsync(string query)
+    [Fact]
+    public async Task List_WithoutPaginationParameters_ShouldUseDefaults()
+    {
+        // Arrange
+        var tag = UniqueTag();
+        await CreateTaskAsync($"Tarefa {tag}");
+
+        // Act
+        var page = await ListPageAsync($"?search={tag}");
+
+        // Assert
+        page.Page.Should().Be(1);
+        page.PageSize.Should().Be(TaskFilter.DefaultPageSize);
+        page.TotalCount.Should().Be(1);
+        page.TotalPages.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task List_WithPagination_ShouldReturnRequestedPageAndMetadata()
+    {
+        // Arrange
+        var tag = UniqueTag();
+        var created = new List<TaskResponse>();
+        for (var day = 1; day <= 5; day++)
+            created.Add(await CreateTaskAsync($"Tarefa {day} {tag}", dueDate: new DateOnly(2026, 1, day)));
+
+        // Act
+        var page = await ListPageAsync($"?search={tag}&page=2&pageSize=2");
+
+        // Assert
+        page.Items.Select(t => t.Id).Should().Equal(created[2].Id, created[3].Id);
+        page.Page.Should().Be(2);
+        page.PageSize.Should().Be(2);
+        page.TotalCount.Should().Be(5);
+        page.TotalPages.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task List_WithPageBeyondLast_ShouldReturnEmptyItemsWithTotalCount()
+    {
+        // Arrange
+        var tag = UniqueTag();
+        await CreateTaskAsync($"Tarefa {tag}");
+
+        // Act
+        var page = await ListPageAsync($"?search={tag}&page=10");
+
+        // Assert
+        page.Items.Should().BeEmpty();
+        page.TotalCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task List_WithPageSizeAboveMaximum_ShouldReturnBadRequest()
+    {
+        // Act
+        var response = await Client.GetAsync($"{TasksUrl}?pageSize={TaskFilter.MaxPageSize + 1}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(JsonOptions);
+        problem!.Errors.Should().ContainKey("pageSize");
+    }
+
+    private async Task<IReadOnlyList<TaskResponse>> ListAsync(string query) =>
+        (await ListPageAsync(query)).Items;
+
+    private async Task<PagedResult<TaskResponse>> ListPageAsync(string query)
     {
         var response = await Client.GetAsync($"{TasksUrl}{query}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskResponse>>(JsonOptions);
-        return tasks!;
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<TaskResponse>>(JsonOptions);
+        return page!;
     }
 }
